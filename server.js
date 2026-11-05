@@ -60,28 +60,58 @@ app.get("/katalog", checkAuth, (req, res) =>
 
 //РЕГИСТРАЦИЯ
 app.post("/reg", (req, res) => {
-  const email = req.query.email;
-  const password = req.query.password;
+  // Если форма отправляет JSON или обычные form-поля, берём данные из body.
+  const { email, password } = req.body;
 
-  conn.query("SELECT * FROM users WHERE email=?",[email], (err, results) =>{
-    if (results.length > 0) { res.send({message:'Этот логин/email уже занят'})}
-    else 
-    {
-      bcrypt.hash(password,10,(err, hashPassword) => {
-        if (err) {res.send({message:"Ошибка хэширования пароля"})}
-        else
-        {
-          conn.query("INSERT INTO users(email, password) VALUES (?,?)", [email, hashPassword], (err, results) =>{
-          if (err) {res.send({message:'Ошибка в тексте запроса SQL/отсутствует подключение к БД'})}
-          else {
-            req.session.user = {id: results.id, email: email, password: password}; // Указываем id в сессии
-            res.send({message:'Вы успешно зарегистрировались', redirect:"/katalog"})}
-        })
-    }
-  })
+  if (!email || !password) {
+    return res.status(400).json({ message: "Введите email и пароль" });
   }
-})
-})
+
+  conn.query(
+    "SELECT id FROM users WHERE email = ?",
+    [email],
+    (err, results) => {
+      if (err) {
+        console.error("Ошибка проверки email:", err);
+        return res.status(500).json({ message: "Ошибка базы данных" });
+      }
+
+      if (results.length > 0) {
+        return res.status(409).json({
+          message: "Этот логин/email уже занят"
+        });
+      }
+
+      bcrypt.hash(password, 10, (err, hashPassword) => {
+        if (err) {
+          console.error("Ошибка хэширования:", err);
+          return res.status(500).json({ message: "Ошибка хэширования пароля" });
+        }
+
+        conn.query(
+          "INSERT INTO users (email, password) VALUES (?, ?)",
+          [email, hashPassword],
+          (err, result) => {
+            if (err) {
+              console.error("Ошибка добавления пользователя:", err);
+              return res.status(500).json({ message: "Не удалось создать пользователя" });
+            }
+
+            req.session.user = {
+              id: result.insertId,
+              email
+            };
+
+            return res.json({
+              message: "Вы успешно зарегистрировались",
+              redirect: "/katalog"
+            });
+          }
+        );
+      });
+    }
+  );
+});
 
 //АВТОРИЗАЦИЯ
 app.post("/avt", (req, res) => {
