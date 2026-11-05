@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 
 const app = express();
-const PORT = 3000;
+const PORT = 80;
 
 // Настройка подключения к базе данных
 const conn = mysql.createPool({
