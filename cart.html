@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Моя корзина</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+  }
+
+  #cartContainer {
+    max-width: 800px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  #totalPrice {
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+
+  button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+</style>
+</head>
+<body>
+
+<h1>Моя корзина</h1>
+
+<div id="cartContainer">
+  <ul id="cartItems">
+    <li>Загрузка корзины...</li>
+  </ul>
+  <p>Общая стоимость: <span id="totalPrice">0</span> ₽</p>
+  <button id="refreshBtn">Обновить корзину</button>
+</div>
+
+<script>
+  // Функция загрузки корзины и подсчета стоимости
+  function loadCart() {
+    fetch('/cart')
+      .then(res => res.json())
+      .then(items => {
+        const container = document.getElementById('cartItems');
+        container.innerHTML = '';
+
+        if (items.length === 0) {
+          container.innerHTML = '<li>Корзина пуста</li>';
+          document.getElementById('totalPrice').innerText = '0';
+          return;
+        }
+
+        let total = 0;
+
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            ${item.name_cake} — ${item.price} ₽ x ${item.quantity}
+          `;
+          container.appendChild(li);
+          total += item.price * item.quantity;
+        });
+
+        document.getElementById('totalPrice').innerText = total.toFixed(2);
+      })
+      .catch(() => {
+        document.getElementById('cartItems').innerHTML = '<li>Ошибка загрузки корзины</li>';
+        document.getElementById('totalPrice').innerText = '0';
+      });
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', loadCart);
+
+  // Загрузка корзины при открытии страницы
+  window.onload = loadCart;
+</script>
+
+</body>
+</html>

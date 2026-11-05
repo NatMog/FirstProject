@@ -1,0 +1,157 @@
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Авторизация и Регистрация</title>
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    max-width: 400px;
+    width: 100%;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+
+  input[type="text"],
+  input[type="password"],
+  input[type="email"] {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  input[type="email"]:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  /* Стиль для сообщений */
+  .message {
+    text-align: center;
+    margin-top: 15px;
+    font-weight: bold;
+  }
+
+  .success {
+    color: green;
+  }
+
+  .error {
+    color: red;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Авторизация/Регистрация</h2>
+  <form id="authForm">
+    <label for="email">Email:</label>
+    <input type="email" id="email" placeholder="Введите email" required />
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" placeholder="Введите пароль" required />
+    <div class="buttons">
+      <button type="submit" id="registerBtn">Регистрация</button>
+      <button type="button" id="loginBtn">Войти</button>
+    </div>
+  </form>
+  <div id="message" class="message">
+  </div>
+</div>
+
+<script>
+
+//**************************************************************
+  //обработка события отправки формы (submit) - кнопка регистрация
+  document.getElementById("authForm").addEventListener("submit", (event) =>
+  {
+    event.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    //отправка запроса на сервер для добавления данных в БД
+    fetch(`/reg?email=${email}&password=${password}`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"}
+    })
+    .then(response => response.json())
+    .then(data => {if (data.redirect) {window.location.href = "/katalog"}
+    else document.getElementById("message").innerHTML= data.message })
+    .catch(error => document.getElementById("message").innerHTML = error.message)
+  })
+  //**************************************************************
+
+  //обработка события клика по кнопке авторизация
+  document.getElementById("loginBtn").addEventListener("click", () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+  // Отправка запроса на сервер для входа
+    fetch("/avt",{
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({email, password})
+    })
+    .then(response => response.json())
+    .then(data => {if (data.redirect) {window.location.href = "/katalog"}
+    else document.getElementById("message").innerHTML= data.message })
+    .catch(error => document.getElementById("message").innerHTML = error.message)
+  })
+  
+</script>
+
+</body>
+</html>

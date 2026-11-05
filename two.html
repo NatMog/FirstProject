@@ -1,0 +1,434 @@
+<html lang="ru">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Список товаров</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      width: 100%;
+      margin-top: 50px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    #loadBtn,
+    #loadCart {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: #fff;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.2s;
+    }
+
+    #loadBtn:hover {
+      background-color: #0056b3;
+    }
+
+    #productList {
+      list-style: none;
+      padding: 0;
+    }
+
+    #productList li {
+      background: #f9f9f9;
+      margin-bottom: 10px;
+      padding: 10px 15px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .buyBtn {
+      background: linear-gradient(135deg, #ff7a18, #ff4d4d);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(255, 90, 50, 0.25);
+      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    #payBtn {
+      width: 100%;
+      padding: 12px;
+      border: 0;
+      border-radius: 8px;
+      background: #198754;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #payModal[hidden] {
+      display: none;
+    }
+
+    #payModal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.55);
+    }
+
+    .modal-content {
+      position: relative;
+      box-sizing: border-box;
+      width: min(100%, 380px);
+      padding: 28px;
+      border-radius: 14px;
+      background: white;
+    }
+
+    .modal-content form,
+    .modal-content label {
+      display: grid;
+      gap: 8px;
+    }
+
+    .modal-content form {
+      gap: 14px;
+    }
+
+    .modal-content input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font: inherit;
+    }
+
+    .expiry {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    #payForm button[type="submit"] {
+      padding: 12px;
+      border: 0;
+      border-radius: 7px;
+      background: #198754;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #closePay {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      border: 0;
+      background: transparent;
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    .quantity-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .quantity-controls button {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .quantity-controls button:hover {
+      background: #0056b3;
+    }
+
+    .quantity-value {
+      min-width: 24px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* Для красоты можно добавить картинку или дополнительные детали */
+  </style>
+</head>
+
+<body>
+
+  <!-- Кнопка выхода -->
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 999;">
+    <button id="logoutBtn"
+      style="padding: 8px 16px; border: none; border-radius: 4px; background-color: #dc3545; color: #fff; cursor: pointer;">
+      Выйти
+    </button>
+  </div>
+
+
+  <div class="container">
+    <h1>Список товаров</h1>
+    <button id="loadBtn">Загрузить товары</button>
+    <button id="loadCart">Посмотреть корзину</button>
+    <ul id="productList">
+      <!-- Тут будут выводиться товары -->
+    </ul>
+    <ul id="cartTotal">
+      <!-- Тут будут выводиться товары в корзине -->
+    </ul>
+    <button id="payBtn" type="button" hidden>Оплатить</button>
+
+    <div id="payModal" hidden>
+      <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="payTitle">
+        <button id="closePay" type="button" aria-label="Закрыть">×</button>
+        <h2 id="payTitle">Оплата</h2>
+
+        <form id="payForm">
+          <label>Номер карты
+            <input type="text" inputmode="numeric" autocomplete="cc-number" placeholder="Номер карты" minlength="12"
+              maxlength="12" required>
+          </label>
+
+          <div class="expiry">
+            <label>Месяц
+              <input type="text" inputmode="numeric" autocomplete="cc-exp-month" placeholder="ММ" minlength="2"
+                maxlength="2" required>
+            </label>
+            <label>Год
+              <input type="text" inputmode="numeric" autocomplete="cc-exp-year" placeholder="ГГ" minlength="2"
+                maxlength="2" required>
+            </label>
+          </div>
+
+          <label>Секретный код
+            <input type="password" inputmode="numeric" autocomplete="cc-csc" placeholder="CVC" minlength="3"
+              maxlength="3" required>
+          </label>
+
+          <button type="submit">Заплатить</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+
+    //Обработка клика по кнопке Выйти
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      fetch('/logout') // вызываем эндпоинт для выхода
+        .then(response => { if (response.ok) { window.location.href = '/' } })
+        .catch(err => console.log(err))
+    }
+    );
+
+    // Метод выгрузки тортов из БД
+    const loadBtn = document.getElementById('loadBtn');
+    const productList = document.getElementById('productList');
+
+    loadBtn.addEventListener("click", () => {
+      fetch("/cakes")
+        .then(response => response.json())
+        .then(data => {
+          productList.innerHTML = "";
+          if (data.length == 0) {
+            productList.innerHTML = "Каталог пустой/товары не найдены"
+          }
+          else {
+            data.forEach(cake => {
+              const li = document.createElement("li");
+              li.innerHTML = `<img src="${cake.image_path}" width="150">
+                <div>
+                  <h4>Название торта</h4> ${cake.name_cake}<br>
+                  <h4>Вес торта</h4> ${cake.weight}<br>
+                  <h4>Описание торта</h4> ${cake.description}<br>
+                  <h4>Дата изготовления</h4> ${cake.time}<br>
+                  <h4>Цена</h4> ${cake.price} ₽<br>
+                  <button class="buyBtn" data-id="${cake.id_p}">Купить</button> <!-- Здесь id_p -->
+                </div>
+                `;
+              productList.appendChild(li);
+            });
+          }
+        })
+        .catch(err => { productList.innerHTML = "Ошибка загрузки данных" })
+    })
+
+
+
+    // Обработчик покупки - нажатия на кнопку "Купить"
+    productList.addEventListener('click', (event) => {
+      if (event.target.classList.contains('buyBtn')) {
+        const id = event.target.getAttribute('data-id');
+
+        fetch('/addToCart', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_p: parseInt(id) }) // Преобразуем в число
+        })
+          .then(response => response.json())
+          .then(data => alert(data.message))
+          .catch(err => alert('Ошибка при добавлении в корзину'));
+      }
+    });
+
+
+
+    const payBtn = document.getElementById('payBtn');
+    const cartTotal = document.getElementById('cartTotal');
+    const cart = document.getElementById('loadCart');
+
+    let cartItems = [];
+
+    function renderCart() {
+      productList.innerHTML = '';
+
+      if (cartItems.length === 0) {
+        productList.textContent = 'В корзине пусто';
+        cartTotal.textContent = 'Итого к оплате: 0 ₽';
+        payBtn.hidden = true;
+        return;
+      }
+
+      let summa = 0;
+
+      cartItems.forEach(cake => {
+        const price = Number(cake.price);
+        const quantity = Number(cake.quantity);
+        summa += price * quantity;
+
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div>
+            <strong>${cake.name_cake}</strong><br>
+            ${price} ₽ за шт. · Сумма: ${price * quantity} ₽
+
+            <div class="quantity-controls">
+              <button type="button" class="quantityBtn" data-action="minus"
+                      data-id="${cake.id_p}" aria-label="Уменьшить количество">−</button>
+              <span class="quantity-value">${quantity}</span>
+              <button type="button" class="quantityBtn" data-action="plus"
+                      data-id="${cake.id_p}" aria-label="Увеличить количество">+</button>
+            </div>
+          </div>
+        `;
+        productList.appendChild(li);
+      });
+
+      cartTotal.textContent = `Итого к оплате: ${summa} ₽`;
+      payBtn.hidden = false;
+    }
+
+    cart.addEventListener('click', async () => {
+      payBtn.hidden = true;
+      productList.textContent = 'Загрузка...';
+
+      try {
+        const response = await fetch('/showCart');
+        if (!response.ok) throw new Error('Не удалось загрузить корзину');
+
+        cartItems = await response.json();
+        renderCart();
+      } catch (error) {
+        console.error(error);
+        productList.textContent = 'Ошибка загрузки корзины';
+        cartTotal.textContent = '';
+      }
+    });
+
+    productList.addEventListener('click', async event => {
+      const button = event.target.closest('.quantityBtn');
+      if (!button) return;
+
+      const id = Number(button.dataset.id);
+      const action = button.dataset.action;
+      const item = cartItems.find(cake => Number(cake.id_p) === id);
+
+      if (!item) return;
+
+      const oldQuantity = Number(item.quantity);
+      const newQuantity = action === 'plus' ? oldQuantity + 1 : oldQuantity - 1;
+
+      // При уменьшении с 1 до 0 удаляем товар из корзины.
+      try {
+        const response = await fetch('/updateCartQuantity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id_p: id, quantity: newQuantity })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Не удалось изменить количество');
+
+        if (newQuantity <= 0) {
+          cartItems = cartItems.filter(cake => Number(cake.id_p) !== id);
+        } else {
+          item.quantity = newQuantity;
+        }
+
+        renderCart();
+      } catch (error) {
+        console.error(error);
+        alert(error.message || 'Ошибка обновления корзины');
+      }
+    });
+
+
+    const payModal = document.getElementById('payModal');
+
+    document.getElementById('payBtn').addEventListener('click', () => {
+      payModal.hidden = false;
+    });
+
+    document.getElementById('closePay').addEventListener('click', () => {
+      payModal.hidden = true;
+    });
+
+    payModal.addEventListener('click', event => {
+      if (event.target === payModal) payModal.hidden = true;
+    });
+
+    document.getElementById('payForm').addEventListener('submit', event => {
+      event.preventDefault();
+      alert('Оплата прошла успешно!');
+      payModal.hidden = true;
+      event.target.reset();
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск студента</title>
+    <style>
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+<!--Форма добавления студента-->
+<form id="addStudent">
+    <input type="text" id="name" name="name">
+    <input type="text" id="lastname" name="lastname"> 
+    <input type="text" id="bd" name="bd">
+    <input type="text" id="gruppa" name="gruppa">
+    <input type="submit" value="добавить студента в БД">
+</form>
+<div id="s">
+
+</div>
+
+<input type="button" id="button1" value="Вызов fetch(get)">
+<!--Форма для поиска данных студента по номеру группы-->
+<form id="searchGruppa">
+    <input type="text" name="gruppa" id="gruppa">
+    <input type="submit" value="найти студентов этой группы">
+</form>
+
+
+
+<!--Форма для поиска данных студента по его фамилии-->
+    <h1>Поиск студента по фамилии</h1>
+    <form id="searchForm">
+        <label for="lastname">Фамилия:</label>
+        <input type="text" id="lastname" name="lastname" required>
+        <button type="submit">Найти</button>
+    </form>
+    <div id="result">
+        <!--здесь будет результат поиска-->
+    </div>
+
+    <!--Форма для удаления данных студента по его фамилии И группе-->
+    <h1>Удаление студента по фамилии и группе</h1>
+    <form id="deleteForm">
+        <label for="lastnameD">Фамилия:</label>
+        <input type="text" id="lastnameD" name="lastnameD" required>
+        <label for="gruppa">Группа:</label>
+        <input type="text" id="gruppa" name="gruppa" required>
+        <button type="submit">Удалить</button>
+    </form>
+    <div id="resultDelete">
+
+    </div>
+
+
+    <script>
+
+        document.getElementById("addStudent").addEventListener("submit",(event) =>{
+            event.preventDefault();
+            const name = document.getElementById("name").value;
+            const lastname = document.getElementById("lastname").value;
+            const bd = document.getElementById("bd").value;
+            const gruppa = document.getElementById("gruppa").value;
+            const s = document.getElementById("s");
+
+            fetch(`/addStudent?name=${name}&lastname=${lastname}&bd=${bd}&gruppa=${gruppa}`,{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {s.textContent=JSON.stringify(data.message)})
+            .catch(error => {s.textContent=JSON.stringify(error.message)})
+        })
+
+
+
+        document.getElementById("searchGruppa").addEventListener("submit", (event) =>{
+            event.preventDefault();
+            //пример функции fetch метод get
+            const gruppa = document.getElementById("gruppa").value;
+
+            fetch(`/showStudents?gruppa=${gruppa}`)
+                .then(response => response.json())
+                .then(data => console.log('данные успешно получены', data))
+                .catch(error => console.error('возникла ошибка', error)); 
+        })
+
+
+
+
+        //Обработка формы поиска студента
+        document.getElementById('searchForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const lastname = document.getElementById('lastname').value;
+            console.log(lastname);
+
+            fetch(`/students?lastname=${lastname}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('result').textContent = JSON.stringify(data);
+                   
+                    //.. = data.id;
+                    //.. = data.name;
+                    //.. = data.lastname;
+
+                })
+                .catch(error => {
+                    document.getElementById('result').textContent = 'Ошибка: ' + error;
+                });
+        });
+
+        // Обработка формы удаления студента
+        document.getElementById('deleteForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const lastnameD = document.getElementById('lastnameD').value;
+            const gruppa = document.getElementById('gruppa').value;
+
+            fetch('/students', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lastnameD, gruppa })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('resultDelete').innerHTML = '<p class="success">' + data.message + '</p>';
+            })
+            .catch(error => {
+                document.getElementById('resultDelete').innerHTML = '<p class="error">Ошибка: ' + error.message + '</p>';
+            })
+        });
+    </script>
+</body>
+</html>
