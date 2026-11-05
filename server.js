@@ -61,7 +61,7 @@ app.get("/katalog", checkAuth, (req, res) =>
 //РЕГИСТРАЦИЯ
 app.post("/reg", (req, res) => {
   // Если форма отправляет JSON или обычные form-поля, берём данные из body.
-  const { email, password } = req.body;
+  const { email, password } = req.query;
 
   if (!email || !password) {
     return res.status(400).json({ message: "Введите email и пароль" });
