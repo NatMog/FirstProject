@@ -8,12 +8,14 @@ const PORT = 80;
 
 // Настройка подключения к базе данных
 const conn = mysql.createPool({
-    connectionLimit: '5',
-    host: 'localhost', // ваш хост
-    user: 'root', // ваше имя пользователя
-    password: '1111', // ваш пароль
-    database: 'test' // название вашей базы данных
+    connectionLimit: 5,
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '1111',
+    database: process.env.DB_NAME || 'test',
+    port: Number(process.env.DB_PORT) || 3306
 });
+
 
 // Middleware для парсинга JSON
 app.use(express.json());
